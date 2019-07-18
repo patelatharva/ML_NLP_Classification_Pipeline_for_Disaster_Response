@@ -107,27 +107,29 @@ def build_model():
     Output:
     - model : 
     """
-    pipeline = Pipeline([
-        ('vect', CountVectorizer(tokenizer=tokenize)),
-        ('tfidf', TfidfTransformer(sublinear_tf=True)),
-        # ('clf', MultiOutputClassifier(estimator=SVC(gamma='scale')))
-        ('clf', MultiOutputClassifier(estimator=MultinomialNB(fit_prior=False)))
-    ])
-    return pipeline
+    # pipeline = Pipeline([
+    #     ('vect', CountVectorizer(tokenizer=tokenize)),
+    #     ('tfidf', TfidfTransformer(sublinear_tf=True)),
+    #     # ('clf', MultiOutputClassifier(estimator=SVC(gamma='scale')))
+    #     ('clf', MultiOutputClassifier(estimator=MultinomialNB(fit_prior=False)))
+    # ])
+    # return pipeline
     # parameters = {
     #     'clf__estimator__fit_prior': [True, False]
     # }
-    # pipeline = Pipeline([
-    #     ('vect', CountVectorizer(tokenizer=tokenize)),
-    #     ('tfidf', TfidfTransformer()),
-    #     ('clf', MultiOutputClassifier(estimator=SVC()))
-    # ])
-    # parameters = {'clf__estimator__gamma': [0.1, 1, 10, 50, 100],
-    #             "clf__estimator__C": [0.1, 1, 10, 50, 100]}
+    pipeline = Pipeline([
+        ('vect', CountVectorizer(tokenizer=tokenize)),
+        ('tfidf', TfidfTransformer()),
+        ('clf', MultiOutputClassifier(estimator=SVC()))
+    ])
+    parameters = {
+                'clf__estimator__gamma': [0.1, 1]
+                # "clf__estimator__C": [0.1, 1, 10, 50, 100]
+                }
 
-    # cv = GridSearchCV(estimator=pipeline, param_grid=parameters, 
-    #                   scoring='f1_weighted', n_jobs=1, verbose=1)
-    # return cv
+    cv = GridSearchCV(estimator=pipeline, param_grid=parameters, 
+                      scoring='f1_weighted', n_jobs=1, verbose=1)
+    return cv
 
 
 def evaluate_model(model, X_test, Y_test, category_names):
