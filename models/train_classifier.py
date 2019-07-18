@@ -23,9 +23,21 @@ from sklearn.svm import SVC
 from sklearn.model_selection import GridSearchCV
 from sklearn.metrics import f1_score
 from sklearn.metrics import classification_report
-# from sklearn.externals import joblib
 import pickle
+
 def load_data(database_filepath):
+    """
+    Loads data from SQLite database.
+    Assigns appropriate columns to X and Y for training and evaluating machine learning model
+    for predicting the category of message based on its content.
+    Input:
+    - database_filepath: String <- the location of filepath where the database file is located
+    
+    Output:
+    - X: DataFrame <- Pandas DataFrame containing input variables for ML model
+    - Y: DataFrame <- Pandas DataFrame containing output/target variables for ML model
+    - category_names: [String] <- Names of the categories which can be assigned to the messages
+    """
     engine = create_engine('sqlite:///{}'.format(database_filepath))
     df = pd.read_sql("SELECT * FROM CategorizedMessages;", engine)
     print("Number of rows in df: ", df.shape[0])
@@ -41,8 +53,18 @@ def load_data(database_filepath):
     category_names = Y.columns
     return X, Y, category_names
     
-
 def tokenize(text):
+    """
+    This function tokenizes text using NLTK word tokenizer.
+    It removes stopwords from tokens.
+    It them lemmatizes the words using WordNet Lemmatizer.    
+    It then normalizes the words the lemmatized words to lower case and returns them.
+
+    Input:
+    - text: String <- to be tokenized
+    Output:
+    - tokens: [String] <- list of strings - lemmatized and normalized tokens
+    """
     def is_noun(tag):
         return tag in ['NN', 'NNS', 'NNP', 'NNPS']
 
@@ -78,8 +100,13 @@ def tokenize(text):
         return ["help"]
     return lemmed
 
-
 def build_model():
+    """
+    Builds the pipeline to transform the input data as natural language into numerical attributes
+    to train machine learning model from.
+    Output:
+    - model : 
+    """
     pipeline = Pipeline([
         ('vect', CountVectorizer(tokenizer=tokenize)),
         ('tfidf', TfidfTransformer(sublinear_tf=True)),
@@ -104,11 +131,25 @@ def build_model():
 
 
 def evaluate_model(model, X_test, Y_test, category_names):
+    """
+    Evaluates the performance of machine learning based classifier model using metrics like
+    precision, recall, f1-score etc. for each category of messages as well as aggregate performance.
+    Prints out the scores on these performance metrics.
+    Input:
+    - X_test: DataFrame <- Pandas DataFrame containing messages whose category is 
+    - Y_test: DataFrame <- Pandas DataFrame containing categories assigned to messages
+    """
     Y_pred = model.predict(X_test)
     print(classification_report(Y_test, Y_pred, target_names=category_names))
 
 
 def save_model(model, model_filepath):
+    """
+    Saves the ML model to pickle file at specified filepath location.
+    Input:
+    - model <- sklearn model to be saved as Pickle file
+    - model_filepath <- location where the file is to be saved 
+    """
     pickle.dump(model, model_filepath)
     
 

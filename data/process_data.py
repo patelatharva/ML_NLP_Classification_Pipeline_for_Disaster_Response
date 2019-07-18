@@ -5,12 +5,27 @@ import re
 from sqlalchemy import create_engine
 
 def load_data(messages_filepath, categories_filepath):
+    """
+    Loads the data of messages and categories stored in csv files into Pandas Dataframe.
+    Input:
+    - messages_filepath: [String] <- location of file where messages are stored in csv format
+    - categories_filepath: [String] <- location of file where categories are stored in csv format
+    """
     messages = pd.read_csv(messages_filepath)
     categories = pd.read_csv(categories_filepath)
     df = pd.merge(left=messages, right=categories, on=["id"])
     return df
 
 def clean_data(df):
+    """
+    Transforms the datafrme containing messages and categories.
+    Converts the categories assigned to message in the list format under single column to
+    numeric value under individual columns.
+    Input:
+    - df: DataFrame <- Pandas DataFrame containing messages and categories
+    Output:
+    - df: DataFrame <- Cleaned Pandas DataFrame after performing necessary transformations
+    """
     categories_temp = df.categories.str.split(";", expand=True)
     row = categories_temp.iloc[0]
     category_colnames = row.apply(lambda x : re.sub("-\d$", "", x))
@@ -27,6 +42,12 @@ def clean_data(df):
     return df
 
 def save_data(df, database_filename):
+    """
+    Saves given dataframe into an table in SQLite database file.
+    Input:
+    - df: DataFrame <- Pandas DataFrame containing cleaned data of messages and categories
+    - database_filename: String <- Location of file where the database file is to be stored    
+    """
     engine = create_engine('sqlite:///{}'.format(database_filename))
     df.to_sql('CategorizedMessages', engine, if_exists="replace", index=False)
 
